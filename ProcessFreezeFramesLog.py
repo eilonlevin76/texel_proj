@@ -13,7 +13,7 @@ import Logger
 def parseArgv():
     ''' parse command line arguments '''
     parser = argparse.ArgumentParser(description='Process freeze frames log file')
-    parser.add_argument('-in_folder', required=True,  default='', type=str, help='folder contains analysis log files (created by ffmpeg tool)')
+    parser.add_argument('-logs_folder', required=True,  default='', type=str, help='folder contains analysis log files (created by ffmpeg tool)')
     parser.add_argument('-out_json_file', required=True,  default='', type=str, help='name of an output JSON format file summarizing freeze frames in all files')
     
     return parser.parse_args()
@@ -22,7 +22,7 @@ def parseArgv():
 
 ''' This method is responsible for parsing ffmpeg log files created in oder to find freeze frames for a list of viedo files    
  Input: 
-        -in_folder: a text file contains URLs, one per line   '
+        -logs_folder: a text file contains URLs, one per line   '
         -out_json_file: name of an output JSON format file summarizing freeze frames in all files, file name and path. if the folder does not exist, create it. 
                         JSON structure should look like this:
 {
@@ -76,11 +76,11 @@ def parseArgv():
 def processFreezeFramesLog(arguments):
     Logger.log_header(__file__+': processFreezeFramesLog() ')
 
-    inFolder = arguments.in_folder
+    inFolder = arguments.logs_folder
     outJsonFile = arguments.out_json_file
     
-    Logger.log_warning('input folder path: ['+str(inFolder)+']')
-    Logger.log_warning('output JSON format file: ['+str(outJsonFile)+']')
+    Logger.log_info('input folder path: ['+str(inFolder)+']')
+    Logger.log_info('output JSON format file: ['+str(outJsonFile)+']')
     
     ' Validate input folder given exists'  
     if not os.path.exists(inFolder):
@@ -121,7 +121,7 @@ def processFreezeFramesLog(arguments):
         fileSplit = os.path.splitext(currentLogFile)
         'parse only files that have ffmpeg_log as their extension: '
         if [fileSplit[0] == '.ffmpeg_log']:
-            Logger.log_debug('current file name: ['+str(currentLogFile)+'] is a valid ffmpeg analyzer file')
+            Logger.log_info('current file name: ['+str(currentLogFile)+'] is a valid ffmpeg analyzer file')
             
             '''
             run on each line in ffmpe log file, search for the following:
@@ -195,7 +195,7 @@ def processFreezeFramesLog(arguments):
                         line = fp.readline()
                         
 #                    Logger.log_info('>>> '+str(validPeriods))
-                    print(validPeriodsArr)
+#                    print(validPeriodsArr)
                     
                     
 #                    Logger.log_info('total freeze time: ' + str(freezeDuration))
@@ -238,7 +238,7 @@ def processFreezeFramesLog(arguments):
         'Compare that start duration of all files match:'
         for j in range (0,numOfVideoFiles):
             currentDuration = allVideosInfoArr[j]['validPeriodsArr'][i]
-            Logger.log_header('video ['+str(j)+'], duration ['+str(i)+']: {'+str(currentDuration[0])+'}'+'{'+str(currentDuration[1])+'}')
+#            Logger.log_header('video ['+str(j)+'], duration ['+str(i)+']: {'+str(currentDuration[0])+'}'+'{'+str(currentDuration[1])+'}')
             tmpStartArr.append(float(currentDuration[0]))
             tmpEndArr.append(float(currentDuration[1]))
 #        print('tmpStartArr: ' + str(tmpStartArr))
@@ -284,9 +284,7 @@ def processFreezeFramesLog(arguments):
         'all_videos_freeze_frame_synced': totalRes,
         'videos': allVideosInfoArr
     }   
-    
-    print (jsonDict)
-    
+        
     totalAnalysisFile = 'totalAnalysis.json'
     try:
         totalAnalysisFileFD = open(totalAnalysisFile,'w')
@@ -314,4 +312,4 @@ if __name__ == "__main__":
     
     processFreezeFramesLog(arguments)
 
-#./ProcessFreezeFramesLog -in_folder logs_folder  -out_json_file freeze_frames_log.json
+#./ProcessFreezeFramesLog -logs_folder logs_folder  -out_json_file freeze_frames_log.json

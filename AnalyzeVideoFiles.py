@@ -16,19 +16,17 @@ import subprocess
 def parseArgv():
     ''' parse command line arguments '''
     parser = argparse.ArgumentParser(description='analyze video files')
-    parser.add_argument('-in_videos_folder',    required=True,  default='', type=str, help='folder contains video files to analyze ')
+    parser.add_argument('-downloaeded_videos_folder',    required=True,  default='', type=str, help='folder contains video files to analyze ')
     parser.add_argument('-analyzer_path',    required=True,  default='', type=str, help='folder contains ffmpeg analyzer ')
-    parser.add_argument('-out_logs_folder',    required=True,  default='', type=str, help='output folder to create ffmpeg analyzer log files in ')
+    parser.add_argument('-logs_folder',    required=True,  default='', type=str, help='output folder to create ffmpeg analyzer log files in ')
     return parser.parse_args()
-
-
 
 
 '''This method is responsible for executing ffmpeg analyzer in a freeze frame mode on a batch of video files
  Input: 
-        -in_videos_folder: folder containing video files to analyze 
+        -downloaeded_videos_folder: folder containing video files to analyze 
         -analyzer_path: path to ffmpeg tool
-        -out_logs_folder: output folder to create ffmpeg analyzer log files in
+        -logs_folder: output folder to create ffmpeg analyzer log files in
  Output: 
         0 - retcode OK
         1 - fail
@@ -36,9 +34,9 @@ def parseArgv():
 def runFreezeFramesAnalysis(arguments):
     Logger.log_header(__file__+': runFreezeFramesAnalysis() ')
 
-    inFolder = arguments.in_videos_folder
+    inFolder = arguments.downloaeded_videos_folder
     analyzerPath = arguments.analyzer_path +'ffmpeg'
-    outLogsFolder = arguments.out_logs_folder
+    outLogsFolder = arguments.logs_folder
     
     
     ' Validate input folder exists'
@@ -102,4 +100,4 @@ if __name__ == "__main__":
     arguments = parseArgv()
     
     runFreezeFramesAnalysis(arguments)
-# ./AnalyzeVideoFiles.py -in_videos_folder downloaded_files -analyzer_path ../../../ffmpeg-git-20191222-i686-static/ -out_logs_folder logs_folder
+# ./AnalyzeVideoFiles.py -downloaeded_videos_folder downloaded_files -analyzer_path ../../../ffmpeg-git-20191222-i686-static/ -logs_folder logs_folder

@@ -8,7 +8,7 @@ Created on 27 Dec 2019
 import sys
 import argparse
 import os
-import logger
+import Logger
 import subprocess
 
 
@@ -34,7 +34,7 @@ def parseArgv():
         1 - fail
 '''
 def runFreezeFramesAnalysis(arguments):
-    logger.log_header(__file__+': runFreezeFramesAnalysis() ')
+    Logger.log_header(__file__+': runFreezeFramesAnalysis() ')
 
     inFolder = arguments.in_videos_folder
     analyzerPath = arguments.analyzer_path +'ffmpeg'
@@ -43,22 +43,22 @@ def runFreezeFramesAnalysis(arguments):
     
     ' Validate input folder exists'
     if not os.path.exists(inFolder):
-        logger.log_error('Input folder [' + str(inFolder) + '] does not exist! exiting')
+        Logger.log_error('Input folder [' + str(inFolder) + '] does not exist! exiting')
         return (1)
     
     ' Validate output folder exists, otherwise create it'  
     if not os.path.exists(outLogsFolder):
-        logger.log_info('output folder given: ' + str(outLogsFolder) + ' does not exist, creating it now')
+#        Logger.log_info('output folder given: ' + str(outLogsFolder) + ' does not exist, creating it now')
         try:
             os.makedirs(outLogsFolder)
         except OSError:
-            logger.log_error('Folder named [' + str(outLogsFolder) + '] could not be created! exiting')
+            Logger.log_error('Folder named [' + str(outLogsFolder) + '] could not be created! exiting')
             return(1)
-        logger.log_info('folder named: ' + str(outLogsFolder) + 'succesfully created')
+#        Logger.log_info('folder named: ' + str(outLogsFolder) + 'succesfully created')
 
     ' Validate analyzer exists at the given location'
     if not os.path.isfile(analyzerPath):
-        logger.log_error('Analyzer [' + str(analyzerPath) + '] does not exist, exiting')
+        Logger.log_error('Analyzer [' + str(analyzerPath) + '] does not exist, exiting')
         sys.exit(1)
        
     
@@ -71,35 +71,33 @@ def runFreezeFramesAnalysis(arguments):
         if os.path.isfile(outFileName):
             os.remove(outFileName)
         
-        logger.log_info('current file name: ['+str(currentVideoFile)+']')
-        logger.log_info('folder path: ['+str(folderPath)+']')
-        logger.log_info('current file full path: ['+str(fullFilePath)+']')        
+#        Logger.log_info('current file name: ['+str(currentVideoFile)+']')
+#        Logger.log_info('folder path: ['+str(folderPath)+']')
+#        Logger.log_info('current file full path: ['+str(fullFilePath)+']')        
 
         
         fileSplit = os.path.splitext(currentVideoFile)
         stdoutFile = outLogsFolder + '/' + fileSplit[0] + '_stdout.ffmpeg_log'
         try:
             stdoutFD = open(stdoutFile,'w')
-        
             cmd = str(analyzerPath) + ' -i '+str(fullFilePath)+' -filter:v "freezedetect=n=0.003" '+ str(outFileName) + ' > ' + str(stdoutFile) + ' 2>&1'
         
-            logger.log_info('Running command: ['+str(cmd)+']')
-
+#            Logger.log_info('Running command: ['+str(cmd)+']')
 
             subprocess.call(cmd, shell=True)
             stdoutFD.close()
         except IOError:
-            logger.log_error('Could not create file ['+stdoutFile+'], exiting  ')
+            Logger.log_error('Could not create file ['+stdoutFile+'], exiting  ')
             return (0)
         
-    logger.log_pass('runFreezeFramesAnalysis() completed')
+    Logger.log_pass('runFreezeFramesAnalysis() completed')
         
 
 if __name__ == "__main__":
     # execute only if run as a script
-    logger.log_header('*-------------------------*')
-    logger.log_header('* runFreezeFramesAnalysis *')
-    logger.log_header('*-------------------------*')
+    Logger.log_header('*-------------------------*')
+    Logger.log_header('* runFreezeFramesAnalysis *')
+    Logger.log_header('*-------------------------*')
     
     arguments = parseArgv()
     

@@ -17,14 +17,14 @@ def parseArgv():
     '''parse command line arguments'''
     parser = argparse.ArgumentParser(description='download videos')
     parser.add_argument('-url_file',    required=True,  default='', type=str, help='text file path & name contains URLs, one per line ')
-    parser.add_argument('-out_videos_folder',  required=True,  default='', type=str, help='folder to store downloaded files in. if the folder does not exist, create it ')
+    parser.add_argument('-downloaeded_videos_folder',  required=True,  default='', type=str, help='folder to store downloaded files in. if the folder does not exist, create it ')
     return parser.parse_args()
 
 
 ''' This method is responsible for getting a list of URLs, download and store in a designated location    
  Input: 
         -url_file: a text file contains URLs, one per line   
-        -out_videos_folder: a folder to store downloaded files in. if the folder does not exist, create it
+        -downloaeded_videos_folder: a folder to store downloaded files in. if the folder does not exist, create it
  Output: '
         0 - retcode OK
         1 - fail
@@ -33,7 +33,7 @@ def downloadVideos(arguments):
     Logger.log_header(__file__+': downloadVideos() ')
 
     inFile = arguments.url_file
-    outFolder = arguments.out_videos_folder
+    outFolder = arguments.downloaeded_videos_folder
     
     Logger.log_info('Input file given: ' + str(inFile))
     Logger.log_info('Output folder given: ' + str(outFolder))
@@ -66,7 +66,7 @@ def downloadVideos(arguments):
     url_line = inFD.readline()
     while url_line:
         count+=1   
-        Logger.log_info('line number #' + str(count) + ': ' + url_line )
+#        Logger.log_info('line number #' + str(count) + ': ' + url_line )
         url_line = url_line.strip()
         ' parse current line, make sure its a URL '
         o = urlparse(url_line)
@@ -87,7 +87,7 @@ def downloadVideos(arguments):
         r = requests.get(url_line)
         
         ' create file to save on disk'
-        Logger.log_info('Downloading URL and saving into file [' + str(outFolder+'/'+currentFileName) + ']')
+        Logger.log_info('Downloading URL and saving into file [' + str(outFolder+''+currentFileName) + ']')
         try:
             open(outFolder+'/'+currentFileName, 'wb').write(r.content)
 
@@ -98,7 +98,7 @@ def downloadVideos(arguments):
         'get next line'
         url_line = inFD.readline()
 
-    Logger.log_pass('DownloadVideos() completed')
+    Logger.log_pass('downloadVideos() completed')
     return(0)
 
 
@@ -110,10 +110,9 @@ if __name__ == "__main__":
     Logger.log_header('*----------------*')
     
     arguments = parseArgv()
-    print(str(arguments))
     downloadVideos(arguments)
 
 """    
-./VideosDownloader.py -url_file input_url_files/url_file.txt -out_videos_folder downloaded_files/
+./VideosDownloader.py -url_file input_url_files/url_file.txt -downloaeded_videos_folder downloaded_files/
 
 """    

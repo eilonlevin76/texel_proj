@@ -1,16 +1,13 @@
 #!/usr/bin/python3
 '''
-Created on 27 Dec 2019
+Created on 28 Dec 2019
 
 @author: Eilon Levin
 '''
 
-import sys
 import argparse
 import os
-import logger
-import subprocess
-
+import Logger
 
 
 def parseArgv():
@@ -71,22 +68,24 @@ def parseArgv():
 }
 
  Output: 
-        0: retcode OK
+    #1: retCode
+        0:  OK
         1: 
+    #2: JSON structure created
 '''
 def processFreezeFramesLog(arguments):
-    logger.log_header(__file__+': processFreezeFramesLog() ')
+    Logger.log_header(__file__+': processFreezeFramesLog() ')
 
     inFolder = arguments.in_folder
     outJsonFile = arguments.out_json_file
     
-    logger.log_warning('input folder path: ['+str(inFolder)+']')
-    logger.log_warning('output JSON format file: ['+str(outJsonFile)+']')
+    Logger.log_warning('input folder path: ['+str(inFolder)+']')
+    Logger.log_warning('output JSON format file: ['+str(outJsonFile)+']')
     
     ' Validate input folder given exists'  
     if not os.path.exists(inFolder):
-        logger.log_error('output folder given: ' + str(inFolder) + ' does not exist, exiting')
-        return (1)
+        Logger.log_error('output folder given: ' + str(inFolder) + ' does not exist, exiting')
+        return (1,0)
 
     'This variable in an array of dictionaries: each cell holds all relevant data of a single log file parsed'
     allVideosInfoArr = []
@@ -122,7 +121,7 @@ def processFreezeFramesLog(arguments):
         fileSplit = os.path.splitext(currentLogFile)
         'parse only files that have ffmpeg_log as their extension: '
         if [fileSplit[0] == '.ffmpeg_log']:
-            logger.log_debug('current file name: ['+str(currentLogFile)+'] is a valid ffmpeg analyzer file')
+            Logger.log_debug('current file name: ['+str(currentLogFile)+'] is a valid ffmpeg analyzer file')
             
             '''
             run on each line in ffmpe log file, search for the following:
@@ -137,7 +136,7 @@ def processFreezeFramesLog(arguments):
              
             '''
             videoEndTime = 0
-            startValidTime = 0
+            startValidTime = '0'
             endValidPeriod = 0
             freezeDuration = 0
             validPeriods = 0
@@ -156,28 +155,25 @@ def processFreezeFramesLog(arguments):
                         'Find video total duration from ffmpeg log file. line example:  '
                         '    Duration: 00:00:29.06, start: 0.000000, bitrate: 7014 kb/s'
                         if ' Duration: ' in line:
-                            logger.log_info('Video summary: '+str(line)+'')
+                            Logger.log_info('Video summary: '+str(line)+'')
                             arr = line.split('Duration: ')
                             arr = arr[1].split(',')
                             videoEndTime = arr[0]
                             videoEndTime = videoEndTime.split(':')[2]
-                            logger.log_info('End video: '+str(videoEndTime)+'')
                             
                         'If current line contains freezedetect.freeze_start save start time, duration and end of valid period '
                         if 'freezedetect.freeze_start:' in line: # If current line contains freezedetect.freeze_start,
                             numberOfFreezeDurations = numberOfFreezeDurations+1
-                            logger.log_info(''+str(line)+'')
+
                             arr = line.split(': ')
-                            logger.log_info(''+str(arr[1])+'')
                             endValidPeriod = arr[1]
                             validPeriods = str(validPeriods) +'['+str(startValidTime)+','+str(endValidPeriod)+'] \n'
                             currentValidPeriod = (float(endValidPeriod) - float(startValidTime))
                             if float(currentValidPeriod) > float(longestValidDuration):
                                 longestValidDuration = float(currentValidPeriod)
     
-                            validPeriodsArr.append([(startValidTime),(endValidPeriod)])
-                            logger.log_info('Current longest valid duration: ' + str(longestValidDuration))
-    #                        validPeriodsArr.append(str(startValidTime)+','+str(endValidPeriod))
+                            validPeriodsArr.append([startValidTime.rstrip(),endValidPeriod.rstrip()])
+
     
                         if 'freezedetect.freeze_duration:' in line:
                             arr = line.split(': ')
@@ -193,70 +189,126 @@ def processFreezeFramesLog(arguments):
                             currentValidPeriod = (float(videoEndTime) - float(startValidTime))
                             if currentValidPeriod > float(longestValidDuration):
                                 longestValidDuration = currentValidPeriod
-                            logger.log_info('Current longest valid duration: ' + str(longestValidDuration))
-                            validPeriodsArr.append([(startValidTime),(videoEndTime)])
+#                            Logger.log_info('Current longest valid duration: ' + str(longestValidDuration))
+                            validPeriodsArr.append([startValidTime.rstrip(),videoEndTime.rstrip()])
     
                         line = fp.readline()
                         
-                    logger.log_info('>>> '+str(validPeriods))
+#                    Logger.log_info('>>> '+str(validPeriods))
                     print(validPeriodsArr)
                     
                     
-                    logger.log_info('total freeze time: ' + str(freezeDuration))
+#                    Logger.log_info('total freeze time: ' + str(freezeDuration))
                     videoFreezePercentage = (float(freezeDuration) / float(videoEndTime)) * 100
                     videoValidPercentage = 100 - videoFreezePercentage 
-                    logger.log_header('total freeze %: ' + str(videoFreezePercentage) + ', total valid %: ' +str(videoValidPercentage) + ', longest valid duration: ' +str(longestValidDuration) + ', numberOfFreezeDurations: ' + str(numberOfFreezeDurations))
+#                    Logger.log_header('total freeze %: ' + str(videoFreezePercentage) + ', total valid %: ' +str(videoValidPercentage) + ', longest valid duration: ' +str(longestValidDuration) + ', numberOfFreezeDurations: ' + str(numberOfFreezeDurations))
                     
                     currentVideoInfo['validPeriodsArr'] = validPeriodsArr
                     currentVideoInfo['longestValidDuration'] = longestValidDuration
                     currentVideoInfo['videoValidPercentage'] = videoValidPercentage
                     currentVideoInfo['numberOfFreezeDurations'] = numberOfFreezeDurations
                     
-                    print(currentVideoInfo)
+#                    print(currentVideoInfo)
                     allVideosInfoArr.append(currentVideoInfo)
                     
             except IOError:
-                logger.log_error('Could not open file ['+inFolder+'/'+currentLogFile+'], exiting  ')
-                return (0)
-                
-    
-    'A dictionary to hold all files info and sync status between them'
-    jsonDict = {
-        'all_videos_freeze_frame_synced': '',
-        'videos': allVideosInfoArr,
-    }
-    
+                Logger.log_error('Could not open file ['+inFolder+'/'+currentLogFile+'], exiting  ')
+                return (1,0)
     
     '1. check if number of freeze durations is the same in all files'
     '2. run over freeze frames from all video files and check if they are synced'
     
     numOfVideoFiles = len(allVideosInfoArr)
-
-    res = True
+    numOfFreezeDurations = allVideosInfoArr[0]['numberOfFreezeDurations']
+    
+    validPeriodsRes = True
     tmp = allVideosInfoArr[0]['numberOfFreezeDurations']
     for x in range (0,numOfVideoFiles):
-        logger.log_header('item ['+str(x)+'] '+ str(allVideosInfoArr[x]['numberOfFreezeDurations']) + ', item [0] ' + str(tmp) )
+#        Logger.log_header('item ['+str(x)+'] '+ str(allVideosInfoArr[x]['numberOfFreezeDurations']) + ', item [0] ' + str(tmp) )
         if allVideosInfoArr[x]['numberOfFreezeDurations'] != tmp:
-            logger.log_error('number of freeze durations is not equal in all files!')
-            res = False
-            break
+            Logger.log_error('number of freeze durations is not equal in all files!')
+            validPeriodsRes = False
     
-    if(res):
-        logger.log_pass('number of freeze durations is equal in all files ')
+    tmpStartArr=[]
+    tmpEndArr=[]
+    syncRes = True
+    
+    'Run on all freeze frames durations fr all videos analysis, validate they are synced:'
+    for i in range (0,numOfFreezeDurations):
+        'Compare that start duration of all files match:'
+        for j in range (0,numOfVideoFiles):
+            currentDuration = allVideosInfoArr[j]['validPeriodsArr'][i]
+            Logger.log_header('video ['+str(j)+'], duration ['+str(i)+']: {'+str(currentDuration[0])+'}'+'{'+str(currentDuration[1])+'}')
+            tmpStartArr.append(float(currentDuration[0]))
+            tmpEndArr.append(float(currentDuration[1]))
+#        print('tmpStartArr: ' + str(tmpStartArr))
+#        print('tmpEndArr: ' + str(tmpEndArr))
+        maxInStartArr = max(tmpStartArr)
+        minInStartArr = min(tmpStartArr)
         
+        if (maxInStartArr - minInStartArr) > 0.5:
+            syncRes = False
+        
+        maxInEndArr = max(tmpEndArr)
+        minInEndArr = min(tmpEndArr)
+        
+        if (maxInEndArr - minInEndArr) > 0.5:
+            syncRes = False
+        
+#        Logger.log_header('maxInStartArr: '+ str(maxInStartArr))
+#        Logger.log_header('minInStartArr: '+ str(minInStartArr))
+
+#        Logger.log_header('maxInEndArr: '+ str(maxInEndArr))
+#        Logger.log_header('minInEndArr: '+ str(minInEndArr))
+
+        tmpStartArr = []
+        tmpEndArr = []
+        
+        
+        #allVideosInfoArr[x]['numberOfFreezeDurations']
+    
+    if(syncRes):
+        Logger.log_pass('all valid periods are synced! ')
+        
+    if(validPeriodsRes):
+        Logger.log_pass('number of valid durations is equal in all files ')
+    
+    totalRes = 'False'
+    if(syncRes & validPeriodsRes):
+        totalRes = 'True'
     
     
     
+    'A dictionary to hold all files info and sync status between them'
+    jsonDict = {
+        'all_videos_freeze_frame_synced': totalRes,
+        'videos': allVideosInfoArr
+    }   
     
-    logger.log_pass('processFreezeFramesLog() completed')
+    print (jsonDict)
+    
+    totalAnalysisFile = 'totalAnalysis.json'
+    try:
+        totalAnalysisFileFD = open(totalAnalysisFile,'w')
+        totalAnalysisFileFD.write(str(jsonDict))
+        totalAnalysisFileFD.close()
+    
+    
+    except IOError:
+        Logger.log_error('Could not create file ['+totalAnalysisFile+'], exiting  ')
+        return (1,0)
+        
+    return (0,jsonDict)
+
+    Logger.log_pass('processFreezeFramesLog() completed')
 
 
 
 if __name__ == "__main__":
     # execute only if run as a script
-    logger.log_header('*---------------------------*')
-    logger.log_header('* processFreezeFramesLog.py *')
-    logger.log_header('*---------------------------*')
+    Logger.log_header('*---------------------------*')
+    Logger.log_header('* processFreezeFramesLog.py *')
+    Logger.log_header('*---------------------------*')
     
     arguments = parseArgv()
     

@@ -22,7 +22,8 @@ def parseArgv():
     return parser.parse_args()
 
 
-'''This method is responsible for executing ffmpeg analyzer in a freeze frame mode on a batch of video files
+'''
+This method is responsible for executing ffmpeg analyzer in a freeze frame mode on a batch of video files and save their output to log files
  Input: 
         -downloaeded_videos_folder: folder containing video files to analyze 
         -analyzer_path: path to ffmpeg tool
@@ -35,13 +36,13 @@ def runFreezeFramesAnalysis(arguments):
     Logger.log_header(__file__+': runFreezeFramesAnalysis() ')
 
     inFolder = arguments.downloaeded_videos_folder
-    analyzerPath = arguments.analyzer_path +'ffmpeg'
+    analyzerPath = arguments.analyzer_path
     outLogsFolder = arguments.logs_folder
     
     
     ' Validate input folder exists'
     if not os.path.exists(inFolder):
-        Logger.log_error('Input folder [' + str(inFolder) + '] does not exist! exiting')
+        Logger.log_error('Input folder with video files [' + str(inFolder) + '] does not exist! exiting')
         return (1)
     
     ' Validate output folder exists, otherwise create it'  
@@ -50,7 +51,7 @@ def runFreezeFramesAnalysis(arguments):
         try:
             os.makedirs(outLogsFolder)
         except OSError:
-            Logger.log_error('Folder named [' + str(outLogsFolder) + '] could not be created! exiting')
+            Logger.log_error('Logs folder named [' + str(outLogsFolder) + '] could not be created! exiting')
             return(1)
 #        Logger.log_info('folder named: ' + str(outLogsFolder) + 'succesfully created')
 
@@ -59,7 +60,7 @@ def runFreezeFramesAnalysis(arguments):
         Logger.log_error('Analyzer [' + str(analyzerPath) + '] does not exist, exiting')
         sys.exit(1)
        
-    
+    videoFilesCnt = 0
     for currentVideoFile in os.listdir(inFolder):
         folderPath = os.path.abspath(inFolder)
         fullFilePath = os.path.join(inFolder,currentVideoFile)
@@ -69,7 +70,7 @@ def runFreezeFramesAnalysis(arguments):
         if os.path.isfile(outFileName):
             os.remove(outFileName)
         
-#        Logger.log_info('current file name: ['+str(currentVideoFile)+']')
+        Logger.log_info('current video file to analyze: ['+str(currentVideoFile)+']')
 #        Logger.log_info('folder path: ['+str(folderPath)+']')
 #        Logger.log_info('current file full path: ['+str(fullFilePath)+']')        
 
@@ -87,6 +88,9 @@ def runFreezeFramesAnalysis(arguments):
         except IOError:
             Logger.log_error('Could not create file ['+stdoutFile+'], exiting  ')
             return (0)
+        videoFilesCnt = videoFilesCnt+1
+    
+    Logger.log_info('Number of video files analyzed: ['+str(videoFilesCnt)+']')
         
     Logger.log_pass('runFreezeFramesAnalysis() completed')
         
@@ -100,4 +104,23 @@ if __name__ == "__main__":
     arguments = parseArgv()
     
     runFreezeFramesAnalysis(arguments)
-# ./AnalyzeVideoFiles.py -downloaeded_videos_folder downloaded_files -analyzer_path ../../../ffmpeg-git-20191222-i686-static/ -logs_folder logs_folder
+    
+"""   
+UT:
+---
+
+    Valid execution:
+./AnalyzeVideoFiles.py -downloaeded_videos_folder downloaded_files -analyzer_path ../../../ffmpeg-git-20191222-i686-static/ffmpeg -logs_folder logs_folder
+
+    Execution when downloaeded_videos_folder does not exist:
+./AnalyzeVideoFiles.py -downloaeded_videos_folder downloaded_files22 -analyzer_path ../../../ffmpeg-git-20191222-i686-static/ffmpeg123 -logs_folder logs_folder
+
+    Execution when downloaeded_videos_folder does not contain video files:
+./AnalyzeVideoFiles.py -downloaeded_videos_folder empty_downloaded_files -analyzer_path ../../../ffmpeg-git-20191222-i686-static/ffmpeg -logs_folder logs_folder
+
+    Execution when analyzer_path is invalid (the :
+./AnalyzeVideoFiles.py -downloaeded_videos_folder downloaded_files -analyzer_path ../../../ffmpeg-git-20191222-i686-static/ffmpeg123 -logs_folder logs_folder
+
+
+
+"""   

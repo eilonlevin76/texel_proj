@@ -26,9 +26,51 @@ def parseArgv():
 
 '''
 This program is responsible for detecting freeze frames in a set of video files.
+1. downloadVideos: downloading video files listed in a file and store in a designated location
+2. runFreezeFramesAnalysis: executing ffmpeg analyzer in a freeze frame mode on a batch of video files and save their output to log files
+3. processFreezeFramesLog: parsing ffmpeg log files created in oder to find freeze frames for a list of viedo files, create the following JSON structure 
 
-
-
+{
+   "all_videos_freeze_frame_synced":true,
+   "videos":[
+      {
+         "longest_valid_period":7.35,
+         "valid_video_percentage":56.00,
+         "valid_periods":[
+            [
+               0.00,
+               3.50
+            ],
+            [
+               6.65,
+               14
+            ],
+            [
+               19.71,
+               20.14
+            ]
+         ]
+      },
+      {
+         "longest_valid_period":7.33,
+         "valid_video_percentage":55.10,
+         "valid_periods":[
+            [
+               0.00,
+               3.40
+            ],
+            [
+               6.65,
+               13.98
+            ],
+            [
+               19.71,
+               20.00
+            ]
+         ]
+      }
+   ]
+}
 
  Input: 
         -url_file: a text file contains URLs, one per line   
@@ -74,13 +116,17 @@ if __name__ == "__main__":
     
     
     Logger.log_pass('FreezeFramesDetector finished successsfully')
-    
-'''    
+    exit(0)
+        
+'''   
+ 
 ./VideosDownloader.py -url_file input_url_files/url_file.txt -downloaeded_videos_folder downloaded_files/
-./AnalyzeVideoFiles.py -downloaeded_videos_folder downloaded_files -analyzer_path ../../../ffmpeg-git-20191222-i686-static/ -logs_folder logs_folder
+./AnalyzeVideoFiles.py -downloaeded_videos_folder downloaded_files -analyzer_path ../../../ffmpeg-git-20191222-i686-static/ffmpeg -logs_folder logs_folder
 ./ProcessFreezeFramesLog.py -in_folder logs_folder  -out_json_file freeze_frames_log.json
 
-./FreezeFramesDetector.py -url_file input_url_files/url_file.txt -downloaeded_videos_folder downloaded_files/  -analyzer_path ../../../ffmpeg-git-20191222-i686-static/ -logs_folder logs_folder -in_folder logs_folder  -out_json_file freeze_frames_log.json
+    Valid execution:
+./FreezeFramesDetector.py -url_file input_url_files/url_file.txt -downloaeded_videos_folder downloaded_files/  -analyzer_path ../../../ffmpeg-git-20191222-i686-static/ffmpeg -logs_folder logs_folder -in_folder logs_folder  -out_json_file freeze_frames_log.json
+
 
 '''
 

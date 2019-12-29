@@ -21,7 +21,9 @@ def parseArgv():
     return parser.parse_args()
 
 
-''' This method is responsible for getting a list of URLs, download and store in a designated location    
+''' 
+
+This method is responsible for downloading video files listed in a file and store in a designated location    
  Input: 
         -url_file: a text file contains URLs, one per line   
         -downloaeded_videos_folder: a folder to store downloaded files in. if the folder does not exist, create it
@@ -112,7 +114,23 @@ if __name__ == "__main__":
     arguments = parseArgv()
     downloadVideos(arguments)
 
-"""    
+"""   
+UT:
+---
+
+    Valid execution:
 ./VideosDownloader.py -url_file input_url_files/url_file.txt -downloaeded_videos_folder downloaded_files/
+
+    Execution when downloaeded_videos_folder does not exist:
+./VideosDownloader.py -url_file input_url_files/url_file.txt -downloaeded_videos_folder downloaded_files2/
+
+    Execution when url_file does not exist:
+./VideosDownloader.py -url_file input_url_files/url_file123.txt -downloaeded_videos_folder downloaded_files2/
+
+
+    Execution when url_file does not contain valid URLs:
+./VideosDownloader.py -url_file input_url_files/url_file_invalid.txt -downloaeded_videos_folder downloaded_files2/
+
+
 
 """    

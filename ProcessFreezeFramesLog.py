@@ -20,7 +20,8 @@ def parseArgv():
 
 
 
-''' This method is responsible for parsing ffmpeg log files created in oder to find freeze frames for a list of viedo files    
+''' 
+This method is responsible for parsing ffmpeg log files created in oder to find freeze frames for a list of viedo files    
  Input: 
         -logs_folder: a text file contains URLs, one per line   '
         -out_json_file: name of an output JSON format file summarizing freeze frames in all files, file name and path. if the folder does not exist, create it. 
@@ -312,4 +313,16 @@ if __name__ == "__main__":
     
     processFreezeFramesLog(arguments)
 
-#./ProcessFreezeFramesLog -logs_folder logs_folder  -out_json_file freeze_frames_log.json
+    
+"""   
+UT:
+---
+
+    Valid execution:
+./ProcessFreezeFramesLog -logs_folder logs_folder  -out_json_file freeze_frames_log.json
+
+    Execution when logs_folder does not exist:
+./ProcessFreezeFramesLog.py -logs_folder logs_folder2  -out_json_file freeze_frames_log.json
+
+
+"""  
